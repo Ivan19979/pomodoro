@@ -1,7 +1,7 @@
 import { alarm } from "./alarm.js";
 import { changeActiveBtn} from "./control.js";
 import { state } from "./state.js"
-import { showTodo } from "./todo.js";
+import { showTodo, updateTodo } from "./todo.js";
 import { addZero } from "./util.js";
 
 const minutesElem = document.querySelector('.time__minutes');
@@ -12,37 +12,50 @@ export const showTime = (seconds) => {
     secondsElem.textContent = addZero(seconds % 60);
 }
 
+const title = document.title;
+
 export const startTimer = () => {
+    const countdown = new Date().getTime() + state.timeLeft * 1000;
+
+    state.timerId = setInterval(() => {
+        state.timeLeft--;
+        showTime(state.timeLeft);
+        document.title = `${addZero(Math.floor(state.timeLeft / 60))}:${addZero(state.timeLeft % 60)}`;
+        // синхронизация времени
+        if(!(state.timeLeft % 10)){
+            const now = new Date().getTime();
+            state.timeLeft = Math.floor((countdown - now) / 1000);
+        }
+        
+        if(state.timeLeft > 0 && state.isActive) {
+            return;
+        }
 
     // отобразить время
-    showTime(state.timeLeft);
+        if(state.timeLeft <= 0){
+            document.title = title;
+            clearTimeout(state.timerId);
+            //сигнализировать что время вышло
+            if(state.status === 'work'){
+                state.activeTodo.pomodoro += 1;
+                showTodo();
+                updateTodo(state.activeTodo);
 
-    if(state.timeLeft > 0 && state.isActive) {
-        state.timerId = setTimeout(() => {
-            state.timeLeft--;
-            startTimer();
-        }, 1000);
-    }
+                if(state.activeTodo.pomodoro % state.count){
+                    state.status = 'break';
+                } else {
+                    state.status = 'relax';
+                }
 
-    if(state.timeLeft <= 0){
-        //сигнализировать что время вышло
-        if(state.status === 'work'){
-            state.activeTodo.pomodoro += 1;
-            showTodo(state.activeTodo.pomodoro);
-
-            if(state.activeTodo.pomodoro % state.count){
-                state.status = 'break';
             } else {
-                state.status = 'relax';
+                state.status = 'work';
             }
+            state.timeLeft = state[state.status] * 60;
+            changeActiveBtn(state.status);
+            alarm(state.status);
+            startTimer(); 
 
-        } else {
-            state.status = 'work';
-        }
-        state.timeLeft = state[state.status] * 60;
-        changeActiveBtn(state.status);
-        alarm(state.status);
-        startTimer();
-
-    }
+        } 
+    }, 1000);
+    
 }

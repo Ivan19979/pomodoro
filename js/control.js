@@ -4,6 +4,7 @@ import { showTime, startTimer } from "./timer.js";
 const btnStart = document.querySelector('.control__btn-start');
 const btnStop = document.querySelector('.control__btn-stop');
 const navigationBtns = document.querySelectorAll('.navigation__btn');
+const title = document.title;
 
 
 export const changeActiveBtn = (dataUse) => {
@@ -17,12 +18,13 @@ export const changeActiveBtn = (dataUse) => {
     }
 }
 
-const stop = () => {
+export const stop = () => {
     clearTimeout(state.timerId);
     state.isActive = false;
     btnStart.textContent = 'Старт';
     state.timeLeft = state[state.status] * 60;
     showTime(state.timeLeft);
+    document.title = title;
 }
 
 export const initControl = () => {
@@ -41,7 +43,7 @@ export const initControl = () => {
 
     btnStop.addEventListener('click', stop);
     showTime(state.timeLeft);
-    startTimer();
+    // startTimer();
     
     navigationBtns.forEach((btn) => {
         btn.addEventListener('click', () =>{

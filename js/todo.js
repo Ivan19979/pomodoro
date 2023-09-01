@@ -1,7 +1,8 @@
+import { changeActiveBtn, stop } from "./control.js";
 import { state } from "./state.js";
 
 const titleElem = document.querySelector('.title');
-const countPomodoro = document.querySelector('.count-num');
+const countElem = document.querySelector('.count-num');
 const todoListElem = document.querySelector('.todo__list');
 const todoAddLi = document.createElement('li');
 todoAddLi.classList.add('todo__item');
@@ -32,25 +33,34 @@ const addTodo = (title) => {
     return todo;
 }
 
-const deleteTodo = (title) => {
-    const todoList = getTodo().filter((item) => item.title !== title );
+const deleteTodo = (todo) => {
+    const todoList = getTodo().filter((item) => item.id !== todo.id);
     localStorage.setItem('pomodoro', JSON.stringify(todoList));
+    if(!todoList.length){
+        state.activeTodo = {
+            id: 'default',
+            pomodoro: 0,
+            title: '',
+        }
+    }
+    if(todo.id === state.activeTodo.id){
+        state.activeTodo = todoList[todoList.length - 1];
+    } 
 }
 
-const editTodo = (title) => {
-    const newTitle = prompt('Редактировать задачу');
-    const todoList = getTodo().map((todo) => {
-        if(todo.title === title){
-            return {
-                title: newTitle,
-                pomodoro: 0,
-                id: todo.id,
-            };
+export const updateTodo = (todo) => {
+    const todoList = getTodo().map(todoItem => {
+        if(todoItem.id === todo.id){
+            todoItem.title = todo.title;
+            todoItem.pomodoro = todo.pomodoro;
         }
-        return todo;
-    });
+        return todoItem;
+    });;
+    // const todoItem = todoList.find(item => item.id === todo.id);
+    // todoItem.title = todo.title;
+    // todoItem.pomodoro = todo.pomodoro;
+
     localStorage.setItem('pomodoro', JSON.stringify(todoList));
-    return newTitle;
 }
 
 const createTodoListItem = (todo) => {
@@ -66,6 +76,7 @@ const createTodoListItem = (todo) => {
         todoBtn.textContent = todo.title;
 
         const editBtn = document.createElement('button');
+
         editBtn.classList.add('todo__edit');
         editBtn.ariaLabel = 'Редактировать задачу';
 
@@ -80,16 +91,22 @@ const createTodoListItem = (todo) => {
 
         todoBtn.addEventListener('click', () => {
             state.activeTodo = todo;
+            showTodo();
+            changeActiveBtn('work');
+            stop();
         });
 
         editBtn.addEventListener('click', () => {
-            todo.title = editTodo(todo.title);
+            todo.title = prompt('Название задачи', todo.title);
             todoBtn.textContent = todo.title;
+            updateTodo(todo);
+            showTodo();
         });
 
         delBtn.addEventListener('click', () => {
-            deleteTodo(todo.title);
+            deleteTodo(todo);
             todoItem.remove();
+            showTodo();
         });
 
     }
@@ -106,7 +123,7 @@ const renderTodoList = (list) => {
 
 export const showTodo = () => {
     titleElem.textContent = state.activeTodo.title;
-    countPomodoro.textContent = state.activeTodo.pomodoro;
+    countElem.textContent = state.activeTodo.pomodoro;
 
 }
 

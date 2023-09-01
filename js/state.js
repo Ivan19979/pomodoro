@@ -1,7 +1,6 @@
 const WORK_TIME = 0.1;
-
-const BREAK_TIME = 0.05;
-const RELAX_TIME = 0.2;
+const BREAK_TIME = 0.1;
+const RELAX_TIME = 20;
 
 export const state = {
     work: WORK_TIME,
@@ -13,3 +12,4 @@ export const state = {
     isActive: false,
     timerId: 0,
 };
+
